@@ -1,0 +1,25 @@
+fileFormatVersion: 2
+guid: 18173ab7019082d4f9a1d559c9be837e
+timeCreated: 1517077569
+licenseType: Free
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - target: {instanceID: 0}
+  - chargeFxPrefab: {fileID: 198662025050955816, guid: 638618a5136cb5248889b927f3a51370,
+      type: 2}
+  - fireFxPrefab: {fileID: 198886693743039184, guid: e8f8e075f7c4b034eaec91c9ad4c85b1,
+      type: 2}
+  - impactFxPrefab: {fileID: 198569242307929130, guid: dcb19964745343c4eb315bf927674199,
+      type: 2}
+  - beamMaterial: {fileID: 2100000, guid: 0bd7405a8f68ad840bc925e66d568567, type: 2}
+  - beamUpClip: {fileID: 8300000, guid: 4ed2ac6dbc0e4004383f2e767d3757b5, type: 3}
+  - beamDownClip: {fileID: 8300000, guid: 8d78168bda42ec24b83d7d2b2f19a187, type: 3}
+  - beamFireLoopClip: {fileID: 8300000, guid: 8095f2e072a38c344819c3d17aca808f, type: 3}
+  - beamShotClip: {fileID: 8300000, guid: 87487824def98124ab1eb4699ee829a5, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
