@@ -97,6 +97,7 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   beamMaterial: {fileID: 2100000, guid: 0bd7405a8f68ad840bc925e66d568567, type: 2}
   beamWidth: 0.5
+  impactOffset: 0
   beamUpClip: {fileID: 8300000, guid: 4ed2ac6dbc0e4004383f2e767d3757b5, type: 3}
   beamDownClip: {fileID: 8300000, guid: 8d78168bda42ec24b83d7d2b2f19a187, type: 3}
   beamFireLoopClip: {fileID: 8300000, guid: 8095f2e072a38c344819c3d17aca808f, type: 3}

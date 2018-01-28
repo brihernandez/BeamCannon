@@ -22,6 +22,7 @@ public class BeamCannon : MonoBehaviour
    public Gradient beamColor = new Gradient();
    public Material beamMaterial;
    public float beamWidth = 1.0f;
+   public float impactOffset = 0.1f;
 
    [Header("Audio")]
    public AudioClip beamUpClip;
@@ -66,7 +67,7 @@ public class BeamCannon : MonoBehaviour
 
       // Create all the subclasses.
       soundEffects = new BeamCannonSound(soundTransform.gameObject, beamUpClip, beamDownClip, beamFireLoopClip, beamShotClip);
-      particleEffects = new BeamCannonParticles(transform, chargeFxPrefab, fireFxPrefab, impactFxPrefab);
+      particleEffects = new BeamCannonParticles(transform, chargeFxPrefab, fireFxPrefab, impactFxPrefab, impactOffset);
       beam = new BeamCannonBeam(transform, beamColor, beamMaterial, beamWidth, maxRange, hitMask);
 
       // ======= Hook up events for the sub classes. ========
@@ -187,7 +188,7 @@ public class BeamCannon : MonoBehaviour
       private const float SCROLL_SPEED = 5.0f;     // How fast the texture scrolls across the LineRenderer.
       private const float MIN_BEAM_DIST = 1.0f;    // Beam raytracing starts this many meters away from the object.
 
-      public event Action<Vector3> OnBeamImpacting;
+      public event Action<Vector3, Vector3> OnBeamImpacting;
       public event Action OnBeamMissing;
 
       public BeamCannonBeam(Transform parent, Gradient color, Material lineMaterial, float width, float maxRange, int hitMask)
@@ -203,6 +204,7 @@ public class BeamCannon : MonoBehaviour
          collider = beam.gameObject.AddComponent<CapsuleCollider>();
          collider.direction = 2; // Z-Axis
          collider.radius = width; // Twice the size of the beam itself.
+         collider.isTrigger = true;
 
          // LineRenderer provides the visual for the beam.
          line = beam.gameObject.AddComponent<LineRenderer>();
@@ -234,23 +236,24 @@ public class BeamCannon : MonoBehaviour
          {
             Ray rayToTarget;
 
+            // Ray starts some distance away so that it's guaranteed to start from inside the capsule collider
+            // that makes up the beam. This prevents false hits when moving the beam/collider around.
             if (target != null)
-               rayToTarget = new Ray(transform.position, target.position - transform.position);
+               rayToTarget = new Ray(transform.position + (transform.forward * MIN_BEAM_DIST), target.position - transform.position);
             else
-               rayToTarget = new Ray(transform.position, transform.forward);
+               rayToTarget = new Ray(transform.position + (transform.forward * MIN_BEAM_DIST), transform.forward);
 
             // Fire ray at target. If the target hits, then set the beam and collider length accordingly.
             RaycastHit hitInfo;
             bool hit = Physics.Raycast(rayToTarget, out hitInfo, maxRange, hitMask);
 
             // If hit something, and didn't hit our own capsule collider.
-            //if (hit && hitInfo.collider != collider)
             if (hit)
             {
                // Hit target. Shorten the length of the line and collider
                float distanceToHit = Vector3.Distance(hitInfo.point, transform.position);
                SetBeamLength(distanceToHit);
-               OnBeamImpacting?.Invoke(hitInfo.point);
+               OnBeamImpacting?.Invoke(hitInfo.point, hitInfo.normal);
 
                //Debug.Log($"Hit {hitInfo.transform.name}");
                Debug.DrawLine(hitInfo.point - Vector3.right * 10.0f, hitInfo.point + Vector3.right * 10.0f);
@@ -320,7 +323,9 @@ public class BeamCannon : MonoBehaviour
       private ParticleSystem firePSystem;
       private ParticleSystem impactPSystem;
 
-      public BeamCannonParticles(Transform transform, ParticleSystem chargePrefab, ParticleSystem firePrefab, ParticleSystem impactPrefab)
+      private float impactOffset = 2.0f;
+
+      public BeamCannonParticles(Transform transform, ParticleSystem chargePrefab, ParticleSystem firePrefab, ParticleSystem impactPrefab, float impactOffset)
       {
          if (chargePrefab != null)
          {
@@ -345,6 +350,8 @@ public class BeamCannon : MonoBehaviour
          }
          else
             Debug.LogError($"{transform.name}: Missing impact effect prefab!");
+
+         this.impactOffset = impactOffset;
       }
 
       public void Charge()
@@ -363,9 +370,10 @@ public class BeamCannon : MonoBehaviour
          firePSystem?.Stop();
       }
 
-      public void StartImpacting(Vector3 position)
+      public void StartImpacting(Vector3 position, Vector3 normal)
       {
-         impactPSystem.transform.position = position;
+         impactPSystem.transform.position = position + (normal * impactOffset);
+         impactPSystem.transform.forward = normal;
 
          if (!impactPSystem.isPlaying)
          {

@@ -4,6 +4,7 @@ public class RayTraceTest : MonoBehaviour
 {
    public Transform target;
    public LayerMask hitMask = -1;
+   public Collider otherCollider;
 
    const float maxRange = 5000.0f;
 
@@ -22,20 +23,31 @@ public class RayTraceTest : MonoBehaviour
          rayToTarget = new Ray(transform.position, transform.forward);
 
       // Fire ray at target. If the target hits, then set the beam and collider length accordingly.
-      RaycastHit hitInfo;
-      bool hit = Physics.Raycast(rayToTarget, out hitInfo, maxRange, hitMask);
+      RaycastHit[] hitInfo = Physics.RaycastAll(rayToTarget, maxRange, hitMask);
+      RaycastHit closestHit = new RaycastHit();
+      float closestDistance = float.MaxValue;
 
-      // If hit something, and didn't hit our own capsule collider.
-      if (hit)
+      foreach (RaycastHit hit in hitInfo)
       {
-         // Hit target. Shorten the length of the line and collider
-         float distanceToHit = Vector3.Distance(hitInfo.point, transform.position);
+         if (hit.collider != otherCollider)
+         {
+            // Find closest hit that wasn't our own collider.
+            float hitDistance = Vector3.Distance(hit.point, transform.position);
+            if (hitDistance < closestDistance)
+            {
+               closestDistance = hitDistance;
+               closestHit = hit;
+            }
+         }
+      }
 
+      if (hitInfo.Length > 0)
+      {
          //Debug.Log($"Hit {hitInfo.transform.name}");
-         Debug.DrawLine(hitInfo.point - Vector3.right * 10.0f, hitInfo.point + Vector3.right * 10.0f);
-         Debug.DrawLine(hitInfo.point - Vector3.up * 10.0f, hitInfo.point + Vector3.up * 10.0f);
-         Debug.DrawLine(hitInfo.point - Vector3.forward * 10.0f, hitInfo.point + Vector3.forward * 10.0f);
-         Debug.DrawRay(rayToTarget.origin, rayToTarget.direction * distanceToHit, Color.red);
+         Debug.DrawLine(closestHit.point - Vector3.right * 10.0f, closestHit.point + Vector3.right * 10.0f);
+         Debug.DrawLine(closestHit.point - Vector3.up * 10.0f, closestHit.point + Vector3.up * 10.0f);
+         Debug.DrawLine(closestHit.point - Vector3.forward * 10.0f, closestHit.point + Vector3.forward * 10.0f);
+         Debug.DrawRay(rayToTarget.origin, rayToTarget.direction * closestDistance, Color.red);
       }
       else
       {
